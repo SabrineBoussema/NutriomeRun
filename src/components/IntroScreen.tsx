@@ -34,12 +34,12 @@ export function IntroScreen({ onStart, onSeeRewards }: IntroScreenProps) {
           <li>Chaque bonne bulle = +1 point, chaque erreur fait perdre un peu de score.</li>
           <li>À la fin, montrez votre score à l'équipe Nutriome pour récupérer votre cadeau.</li>
         </ul>
-        <button
+        {/* <button
           className="mt-3 bg-white text-[#10343a] border border-gray-300 rounded-full px-2.5 py-1.5 text-xs cursor-pointer inline-flex items-center justify-center gap-1.5 font-semibold transition-all hover:border-[#1c9c6c] hover:bg-blue-50 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-[#1c9c6c] focus-visible:outline-offset-2"
           onClick={onSeeRewards}
         >
           🎁 Barème des cadeaux
-        </button>
+        </button> */}
       </div>
 
       <button

@@ -6,6 +6,8 @@ import { ResultScreen } from './components/ResultScreen';
 import { GameScreen as GameScreenType, Objective } from './types';
 import { OBJECTIVES, TOTAL_TIME } from './constants';
 
+// or .png
+
 function App() {
   const [currentScreen, setCurrentScreen] = useState<GameScreenType>('intro');
   const [currentObjective, setCurrentObjective] = useState<Objective | null>(null);
@@ -48,31 +50,32 @@ function App() {
   }, [gameRunning]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#f5f7fb]"
-         style={{
-           background: `radial-gradient(circle at top left, rgba(28, 156, 108, 0.15), transparent 55%),
-                        radial-gradient(circle at bottom right, rgba(247, 183, 51, 0.18), transparent 55%),
-                        #f5f7fb`
-         }}>
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-[#f5f7fb]"
+      style={{
+        background: `radial-gradient(circle at top left, rgba(28, 156, 108, 0.15), transparent 55%),
+                     radial-gradient(circle at bottom right, rgba(247, 183, 51, 0.18), transparent 55%),
+                     #f5f7fb`,
+      }}
+    >
       <div className="bg-white max-w-[520px] w-full rounded-[22px] p-5 pb-6 shadow-[0_18px_40px_rgba(0,0,0,0.10)] relative overflow-hidden">
+        {/* 🌈 Gradient overlay */}
         <div
           className="absolute inset-0 pointer-events-none opacity-25 z-0"
-          style={{
-            background: 'linear-gradient(135deg, rgba(28, 156, 108, 0.18), rgba(247, 183, 51, 0.12), transparent 60%)'
-          }}
+          
         />
+
+        {/* 👇 NEW: Logo badge in the card corner */}
+        <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+         
+        </div>
 
         <div className="relative z-10">
           {currentScreen === 'intro' && (
-            <IntroScreen
-              onStart={startGame}
-              onSeeRewards={() => setCurrentScreen('rewards')}
-            />
+            <IntroScreen onStart={startGame} onSeeRewards={() => setCurrentScreen('rewards')} />
           )}
 
-          {currentScreen === 'rewards' && (
-            <RewardsScreen onBack={() => setCurrentScreen('intro')} />
-          )}
+          {currentScreen === 'rewards' && <RewardsScreen onBack={() => setCurrentScreen('intro')} />}
 
           {currentScreen === 'game' && currentObjective && (
             <GameScreen
@@ -84,12 +87,7 @@ function App() {
             />
           )}
 
-          {currentScreen === 'result' && (
-            <ResultScreen
-              score={score}
-              onPlayAgain={startGame}
-            />
-          )}
+          {currentScreen === 'result' && <ResultScreen score={score} onPlayAgain={startGame} />}
         </div>
       </div>
     </div>

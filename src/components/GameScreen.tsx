@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Bubble } from './Bubble';
 import { Objective, Item } from '../types';
 import { ITEMS, SPAWN_INTERVAL } from '../constants';
-
+import nutriomeLogo from '/nutriome-logo.png';
 interface GameScreenProps {
   objective: Objective;
   timeLeft: number;
@@ -86,13 +86,25 @@ export function GameScreen({
   return (
     <div>
       <div className="flex justify-between items-center mb-2.5 text-xs text-gray-500 gap-2 flex-wrap">
-        <div className="px-2.5 py-1 rounded-full bg-gray-200 text-[11px] inline-flex items-center gap-1 whitespace-nowrap">
+      {/* 👇 Bloc logo + titre jeu */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-white shadow-sm border border-gray-200 flex items-center justify-center">
+          <img
+            src={nutriomeLogo}
+            alt="Nutriome"
+            className="w-6 h-6 object-contain"
+          />
+        </div>
+        <span className="px-2.5 py-1 rounded-full bg-gray-100 text-[11px] font-semibold text-[#10343a]">
           🎮 Nutri-Run
-        </div>
-        <div className="px-2.5 py-1 rounded-full bg-[#e6f6f0] text-[#10343a] font-semibold text-[11px] inline-flex items-center gap-1 whitespace-nowrap">
-          ⏱ Temps : {timeLeft}s
-        </div>
+        </span>
       </div>
+
+      {/* ⏱ Temps */}
+      <div className="px-2.5 py-1 rounded-full bg-[#e6f6f0] text-[#10343a] font-semibold text-[11px] inline-flex items-center gap-1 whitespace-nowrap">
+        ⏱ Temps : {timeLeft}s
+      </div>
+    </div>
 
       <div className="bg-gray-50 rounded-[14px] p-3.5 mb-4 border border-gray-200">
         <div className="text-sm font-semibold text-[#10343a] mb-1">
