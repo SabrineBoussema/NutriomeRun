@@ -35,6 +35,7 @@ export function Bubble({ item, isGood, left, onClick, onAnimationEnd }: BubblePr
     if (!el) return;
 
     const handleAnimationEnd = () => {
+      // si le joueur n’a pas cliqué, on considère que la bulle est "ratée"
       if (!hasClickedRef.current) {
         onAnimationEnd();
       }
@@ -46,11 +47,12 @@ export function Bubble({ item, isGood, left, onClick, onAnimationEnd }: BubblePr
     };
   }, [onAnimationEnd]);
 
-  const baseClasses = "absolute top-0 px-3.5 py-2.5 rounded-full bg-white border text-xs text-gray-900 inline-flex items-center gap-1.5 shadow-[0_4px_10px_rgba(0,0,0,0.08)] cursor-pointer select-none will-change-transform";
+  const baseClasses =
+    'absolute top-0 px-3.5 py-2.5 rounded-full bg-white border text-xs text-gray-900 inline-flex items-center gap-1.5 shadow-[0_4px_10px_rgba(0,0,0,0.08)] cursor-pointer select-none will-change-transform';
 
   const typeClasses = isGood
-    ? "border-[rgba(28,156,108,0.6)] bg-[#f0fdf4]"
-    : "border-[rgba(239,68,68,0.5)] bg-[#fef2f2]";
+    ? 'border-[rgba(28,156,108,0.6)] bg-[#f0fdf4]'
+    : 'border-[rgba(239,68,68,0.5)] bg-[#fef2f2]';
 
   return (
     <div
@@ -58,7 +60,7 @@ export function Bubble({ item, isGood, left, onClick, onAnimationEnd }: BubblePr
       className={`${baseClasses} ${typeClasses}`}
       style={{
         left: `${left}px`,
-        animation: 'fall 3.2s linear forwards'
+        animation: 'fall 6s linear forwards'
       }}
       onClick={handleClick}
     >

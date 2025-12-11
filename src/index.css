@@ -4,12 +4,10 @@
 
 @keyframes fall {
   from {
-    transform: translateY(-10%);
-    opacity: 1;
+    top: -40px;
   }
   to {
-    transform: translateY(115%);
-    opacity: 1;
+    top: 260px; /* même hauteur que la play area */
   }
 }
 

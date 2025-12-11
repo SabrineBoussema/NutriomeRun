@@ -46,4 +46,4 @@ export const ITEMS: Item[] = [
 ];
 
 export const TOTAL_TIME = 30;
-export const SPAWN_INTERVAL = 600;
+export const SPAWN_INTERVAL = 1600;
