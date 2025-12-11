@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fall {
+  from {
+    transform: translateY(-10%);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(115%);
+    opacity: 1;
+  }
+}
+
+.animate-fall {
+  animation: fall 3.2s linear forwards;
+}
