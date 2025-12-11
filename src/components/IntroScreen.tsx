@@ -27,7 +27,7 @@ export function IntroScreen({ onStart, onSeeRewards }: IntroScreenProps) {
         <strong className="text-[13px] text-[#10343a]">
           Comment jouer ?
         </strong>
-        <ul className="text-xs text-gray-600 pl-4.5 mt-2 space-y-1 list-disc">
+        <ul className="text-xs text-gray-600 pl-4.5 mt-2 space-y-1 list-disc p-4" >
           <li>Un objectif apparaît (ex. <em>"Soutenir l'immunité"</em>).</li>
           <li>Des bulles tombent (Vitamine C, Magnésium, Probiotiques, Fast-food…).</li>
           <li>Cliquez uniquement les bulles utiles pour l'objectif.</li>
