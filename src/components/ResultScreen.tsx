@@ -1,6 +1,6 @@
 import { Logo } from './Logo';
 import { useEffect } from 'react';
-import confetti from "canvas-confetti";
+import confetti from 'canvas-confetti';
 
 interface ResultScreenProps {
   score: number;
@@ -11,20 +11,25 @@ export function ResultScreen({ score, onPlayAgain }: ResultScreenProps) {
   let tag: string;
   let text: string;
 
-  if (score >= 18) {
-    tag = "Réflexes micronutrition au top 🔥";
+  if (score >= 10) {
+    tag = 'Réflexes micronutrition au top 🔥';
     text = "Score Gold ! Excellent sens clinique et très bonne réactivité.";
-  } else if (score >= 10) {
-    tag = "Très bon score 👏";
-    text = "Beaux réflexes micronutritionnels, merci pour votre participation !";
+  } else if (score >= 5) {
+    tag = 'Très bon score 👏';
+    text = 'Beaux réflexes micronutritionnels, merci pour votre participation !';
+  } else if (score >= 1) {
+    tag = 'Bravo pour votre participation 🎯';
+    text =
+      "Chaque bonne réponse compte ! L'objectif du jeu est de rappeler quelques grands réflexes en micronutrition.";
   } else {
-    tag = "Merci d'avoir joué 🙌";
-    text = "Un petit rappel micronutrition ne fait jamais de mal. Retrouvez l'équipe Nutriome pour en discuter.";
+    tag = 'Merci d’avoir essayé 🙌';
+    text =
+      "Ce n’est pas un test, mais un jeu pour lancer la discussion. Passez voir l’équipe Nutriome pour revoir ensemble les bons réflexes.";
   }
 
-  // 🎉 Animation de succès uniquement si score ≥ 5
+  // 🎉 Animation de succès à partir de 3 points
   useEffect(() => {
-    if (score >= 5) {
+    if (score >= 3) {
       confetti({
         particleCount: 80,
         spread: 65,
@@ -32,6 +37,8 @@ export function ResultScreen({ score, onPlayAgain }: ResultScreenProps) {
       });
     }
   }, [score]);
+
+  const hasCadeau = score >= 1; // 🎁 cadeau dès qu’il y a au moins 1 bonne réponse
 
   return (
     <div>
@@ -45,7 +52,7 @@ export function ResultScreen({ score, onPlayAgain }: ResultScreenProps) {
 
       <div className="bg-gray-50 rounded-[14px] p-3.5 border border-gray-200">
         <div className="text-2xl font-bold text-[#10343a] mb-1">
-          {score} points
+          {score} point{score > 1 ? 's' : ''}
         </div>
 
         <div className="text-xs font-semibold mb-2.5">
@@ -56,10 +63,11 @@ export function ResultScreen({ score, onPlayAgain }: ResultScreenProps) {
           {text}
         </div>
 
-        {/* 🎁 Cadeau si score ≥ 5 */}
-        {score >= 5 && (
+        {/* 🎁 Cadeau : dès 1 point */}
+        {hasCadeau && (
           <div className="text-[11px] text-gray-500 bg-gray-50 rounded-[10px] px-2.5 py-2 border border-dashed border-gray-300 mb-2.5">
-            🎁 <strong>Montrez cet écran à l'équipe Nutriome</strong> pour récupérer votre cadeau du stand.
+            🎁 <strong>Montrez cet écran à l’équipe Nutriome</strong> pour récupérer votre
+            <span className="font-semibold"> cadeau de participation</span> au stand.
           </div>
         )}
 

@@ -35,7 +35,6 @@ export function Bubble({ item, isGood, left, onClick, onAnimationEnd }: BubblePr
     if (!el) return;
 
     const handleAnimationEnd = () => {
-      // si le joueur n’a pas cliqué, on considère que la bulle est "ratée"
       if (!hasClickedRef.current) {
         onAnimationEnd();
       }
@@ -60,7 +59,7 @@ export function Bubble({ item, isGood, left, onClick, onAnimationEnd }: BubblePr
       className={`${baseClasses} ${typeClasses}`}
       style={{
         left: `${left}px`,
-        animation: 'fall 6s linear forwards'
+        animation: 'fall 6s linear forwards' // 🐢 plus lent
       }}
       onClick={handleClick}
     >

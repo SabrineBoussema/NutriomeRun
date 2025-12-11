@@ -17,10 +17,10 @@ interface BubbleState {
   item: Item;
   isGood: boolean;
   left: number;
-  lane: number; // 👈 on garde la lane pour savoir où elle est
+  lane: number;
 }
 
-const LANES = 3; // ✅ nombre de "pistes" horizontales (colonnes de bulles)
+const LANES = 3; // 3 colonnes max
 
 export function GameScreen({
   objective,
@@ -41,10 +41,10 @@ export function GameScreen({
     setBubbles(prev => {
       const current = prev ?? [];
 
-      // 🔍 lanes déjà occupées par une bulle encore à l’écran
+      // lanes occupées
       const occupiedLanes = new Set(current.map(b => b.lane));
 
-      // 🧠 chercher une lane libre
+      // lane libre
       let freeLane: number | null = null;
       for (let i = 0; i < LANES; i++) {
         if (!occupiedLanes.has(i)) {
@@ -53,8 +53,7 @@ export function GameScreen({
         }
       }
 
-      // ❌ si aucune lane libre, on ne crée PAS de nouvelle bulle
-      // → on attend le prochain tick, ça évite la superposition
+      // pas de lane dispo → on attend le prochain tick
       if (freeLane === null) {
         return current;
       }
@@ -63,12 +62,9 @@ export function GameScreen({
       const isGood = item.tags.some(tag => objective.tags.includes(tag));
 
       const areaWidth = playAreaRef.current?.clientWidth || 480;
-      const bubbleWidth = 140; // largeur approximative d’une bulle
+      const bubbleWidth = 140;
 
-      // 🧊 On découpe la zone de jeu en LANES colonnes
-      const lanes = LANES;
-      const laneWidth = lanes > 1 ? (areaWidth - bubbleWidth) / (lanes - 1) : 0;
-
+      const laneWidth = LANES > 1 ? (areaWidth - bubbleWidth) / (LANES - 1) : 0;
       const left = 10 + freeLane * laneWidth;
 
       const newBubble: BubbleState = {
@@ -83,13 +79,11 @@ export function GameScreen({
     });
   }, [objective.tags]);
 
-  // 🕒 rythme d’apparition des bulles (réglé via SPAWN_INTERVAL dans ../constants)
   useEffect(() => {
     const interval = setInterval(spawnBubble, SPAWN_INTERVAL);
     return () => clearInterval(interval);
   }, [spawnBubble]);
 
-  // ⏱ fin du temps
   useEffect(() => {
     if (timeLeft <= 0) {
       onTimeEnd();
@@ -123,7 +117,6 @@ export function GameScreen({
     <div>
       {/* Header : logo + temps */}
       <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
-        {/* 🎮 Logo + titre jeu */}
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm">
             <img src={nutriomeLogo} alt="Nutriome" className="h-6 w-6 object-contain" />
@@ -133,7 +126,6 @@ export function GameScreen({
           </span>
         </div>
 
-        {/* ⏱ Temps */}
         <div className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-[#e6f6f0] px-2.5 py-1 text-[11px] font-semibold text-[#10343a]">
           ⏱ Temps : {timeLeft}s
         </div>
@@ -160,7 +152,6 @@ export function GameScreen({
           <span className="font-bold text-[#10343a]">{score}</span>
         </div>
 
-        {/* Aire de jeu */}
         <div
           ref={playAreaRef}
           className="relative h-[260px] w-full overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-b from-white to-[#eef3f6]"

@@ -7,9 +7,10 @@
     top: -40px;
   }
   to {
-    top: 260px; /* même hauteur que la play area */
+    top: 260px; /* même hauteur que ta play-area */
   }
 }
+
 
 .animate-fall {
   animation: fall 3.2s linear forwards;
