@@ -42,9 +42,7 @@ export function ResultScreen({ score, onPlayAgain }: ResultScreenProps) {
 
   return (
     <div>
-      <div className="mb-1">
-        <Logo subtitle="Nutri-Run terminé" />
-      </div>
+     
 
       <h1 className="mt-2.5 mb-1.5 text-[22px] text-[#10343a] tracking-tight">
         Votre score

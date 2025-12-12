@@ -1,53 +1,141 @@
-import { Logo } from './Logo';
+// src/components/IntroScreen.tsx
+import { useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
 
 interface IntroScreenProps {
-  onStart: () => void;
+  onStart: (player?: { name: string; phone: string }) => void; // ✅
   onSeeRewards: () => void;
+  onRegisterPlayer: (name: string, phone: string) => void;
+  initialName?: string;
+  initialPhone?: string;
 }
 
-export function IntroScreen({ onStart, onSeeRewards }: IntroScreenProps) {
+
+export function IntroScreen({
+  onStart,
+  onSeeRewards,
+  onRegisterPlayer,
+  initialName = '',
+  initialPhone = '',
+}: IntroScreenProps) {
+  const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone);
+  const [touched, setTouched] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Optionnel: garde le test seulement en dev
+  useEffect(() => {
+    if (import.meta.env.PROD) return;
+
+    (async () => {
+      console.log('🔌 TEST SUPABASE: connexion en cours…');
+      const { data, error } = await supabase.from('participants').select('*').limit(1);
+      console.log('🔍 TEST SELECT:', data, error);
+    })();
+  }, []);
+
+  useEffect(() => {
+    setName(initialName);
+    setPhone(initialPhone);
+  }, [initialName, initialPhone]);
+
+  const cleanName = name.trim();
+  const cleanPhone = phone.replace(/\s+/g, '').trim(); // enlève les espaces
+
+  const isValid = cleanName.length > 1 && cleanPhone.length >= 8;
+
+  const handleStartClick = async () => {
+    setTouched(true);
+    if (!isValid || isSaving) return;
+  
+    setIsSaving(true);
+  
+    const cleanName = name.trim();
+    const cleanPhone = phone.replace(/\s+/g, "").trim();
+    const payload = { name: cleanName, phone: cleanPhone };
+  
+    const { error } = await supabase.from("participants").insert(payload);
+  
+    setIsSaving(false);
+  
+    if (error) {
+      alert(`Erreur Supabase: ${error.message}`);
+      return;
+    }
+  
+    // ✅ 1) on met à jour le state parent
+    onRegisterPlayer(payload.name, payload.phone);
+  
+    // ✅ 2) on démarre immédiatement le jeu (sans attendre le state)
+    onStart(payload); // <-- IMPORTANT (voir props ci-dessous)
+  };
+  
+
   return (
-    <div>
-      <Logo />
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-[22px] font-semibold text-[#103452] mb-1">Nutri-Run 🎯</h1>
+        <p className="text-sm text-[#4b5563]">
+          Saisissez vos coordonnées pour participer au jeu et être éligible à la tombola Nutriome.
+        </p>
+      </div>
 
-      <span className="bg-[#e6f6f0] text-[#10343a] rounded-full px-3 py-1.5 text-[11px] inline-flex items-center gap-1.5 mb-3 border border-[rgba(16,52,58,0.08)] backdrop-blur-sm">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#f7b733]"></span>
-        Mini-jeu exclusif – Congrès ATSM
-      </span>
+      <div className="space-y-3">
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-[#111827]">Nom & prénom</label>
+          <input
+            type="text"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1c9c6c]"
+            placeholder="Ex : Dr. Mohamed Ali"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => setTouched(true)}
+          />
+          {touched && cleanName.length <= 1 && (
+            <p className="text-xs text-red-500">Merci d’indiquer votre nom complet.</p>
+          )}
+        </div>
 
-      <h1 className="mt-2.5 mb-1.5 text-[22px] text-[#10343a] tracking-tight">
-        Nutri-Run
-      </h1>
-      <p className="text-[13px] text-gray-600 mb-4 leading-relaxed">
-        Cliquez le plus vite possible sur les bons micronutriments<br />
-        en fonction de l'objectif affiché. 30 secondes, réflexes ON !
-      </p>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-[#111827]">Numéro de téléphone</label>
+          <input
+            type="tel"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1c9c6c]"
+            placeholder="Ex : 20 000 000"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            onBlur={() => setTouched(true)}
+          />
+          {touched && cleanPhone.length < 8 && (
+            <p className="text-xs text-red-500">Merci d’indiquer un numéro valide.</p>
+          )}
+        </div>
+      </div>
 
-      <div className="bg-gray-50 rounded-[14px] p-3.5 mb-4 border border-gray-200">
-        <strong className="text-[13px] text-[#10343a]">
-          Comment jouer ?
-        </strong>
-        <ul className="text-xs text-gray-600 pl-4.5 mt-2 space-y-1 list-disc p-4" >
-          <li>Un objectif apparaît (ex. <em>"Soutenir l'immunité"</em>).</li>
-          <li>Des bulles tombent (Vitamine C, Magnésium, Probiotiques, Fast-food…).</li>
-          <li>Cliquez uniquement les bulles utiles pour l'objectif.</li>
-          <li>Chaque bonne bulle = +1 point, chaque erreur fait perdre un peu de score.</li>
-          <li>À la fin, montrez votre score à l'équipe Nutriome pour récupérer votre cadeau.</li>
-        </ul>
-        {/* <button
-          className="mt-3 bg-white text-[#10343a] border border-gray-300 rounded-full px-2.5 py-1.5 text-xs cursor-pointer inline-flex items-center justify-center gap-1.5 font-semibold transition-all hover:border-[#1c9c6c] hover:bg-blue-50 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-[#1c9c6c] focus-visible:outline-offset-2"
-          onClick={onSeeRewards}
+      <div className="flex flex-col gap-2 mt-2">
+        <button
+          type="button"
+          onClick={handleStartClick}
+          disabled={!isValid || isSaving}
+          className={`w-full inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition
+            ${isValid && !isSaving ? 'bg-[#1c9c6c] text-white hover:bg-[#158a5f]' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}
+          `}
         >
-          🎁 Barème des cadeaux
+          {isSaving ? 'Enregistrement...' : 'Commencer le jeu'}
+        </button>
+
+        {/* <button
+          type="button"
+          onClick={onSeeRewards}
+          className="w-full inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-medium text-[#103452] border border-gray-200 hover:bg-gray-50"
+        >
+          Voir les cadeaux / tombola 🎁
         </button> */}
       </div>
 
-      <button
-        className="w-full bg-[#1c9c6c] text-white rounded-full px-4 py-2.5 text-sm cursor-pointer inline-flex items-center justify-center gap-1.5 font-semibold shadow-[0_10px_18px_rgba(28,156,108,0.35)] transition-all hover:bg-[#17845a] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-[#1c9c6c] focus-visible:outline-offset-2"
-        onClick={onStart}
-      >
-        🚀 Lancer Nutri-Run
-      </button>
+      <p className="text-[11px] text-gray-400 mt-1">
+        Vos coordonnées sont utilisées uniquement pour le tirage au sort de la tombola Nutriome.
+      </p>
     </div>
   );
 }

@@ -1,27 +1,42 @@
-import { Objective, Item } from './types';
+import { Objective, Item } from "./types";
 
-// 1) ITEMS : tous les micronutriments + tags homogènes
+/**
+ * Convention:
+ * - tags = mots simples, sans accents, en minuscules
+ * - mauvais items: tag = ['junk'] (pas [])
+ *   => ça permet au GameScreen de distinguer clairement "mauvais"
+ */
+
 export const ITEMS: Item[] = [
-  // ✅ Micronutriments / facteurs "positifs"
-  { name: 'Vitamine C',         tags: ['immunite', 'fatigue', 'antioxydant'],  label: 'Vitamine' },
-  { name: 'Vitamine D',         tags: ['immunite', 'os'],                      label: 'Vitamine' },
-  { name: 'Vitamine E',         tags: ['antioxydant'],                         label: 'Vitamine' },
-  { name: 'Vitamine B-Complex', tags: ['stress', 'fatigue'],                   label: 'Vitamine' },
-  { name: 'Zinc',               tags: ['immunite', 'antioxydant'],             label: 'Minéral' },
-  { name: 'Sélénium',           tags: ['immunite', 'antioxydant'],             label: 'Minéral' },
-  { name: 'Fer',                tags: ['fatigue'],                             label: 'Minéral' },
-  { name: 'Magnésium',          tags: ['stress', 'fatigue'],                   label: 'Minéral' },
-  { name: 'Probiotiques',       tags: ['digestion', 'immunite'],               label: 'Microbiote' },
-  { name: 'Omega-3',            tags: ['stress'],                              label: 'Acides gras essentiels' },
+  // ✅ Immunité
+  { name: "Vitamine C", tags: ["immunite", "fatigue", "antioxydant"], label: "Vitamine" },
+  { name: "Vitamine D", tags: ["immunite", "os"], label: "Vitamine" },
+  { name: "Zinc", tags: ["immunite", "antioxydant"], label: "Minéral" },
+  { name: "Sélénium", tags: ["immunite", "antioxydant"], label: "Minéral" },
 
-  // 🚫 Faux / facteurs défavorables : aucune des tags "objectifs"
-  { name: 'Fast-food',          tags: [], label: '🛑' },
-  { name: 'Sucre raffiné',      tags: [], label: '🛑' },
-  { name: 'Sédentarité',        tags: [], label: '🛑' },
-  { name: 'Tabac',              tags: [], label: '🛑' }
+  // ✅ Stress / Sommeil
+  { name: "Magnésium", tags: ["stress", "fatigue", "sommeil"], label: "Minéral" },
+  { name: "Vitamine B-Complex", tags: ["stress", "fatigue"], label: "Vitamine" },
+  { name: "Omega-3", tags: ["stress", "cerveau", "anti_inflammatoire"], label: "Acides gras essentiels" },
+
+  // ✅ Fatigue
+  { name: "Fer", tags: ["fatigue"], label: "Minéral" },
+
+  // ✅ Digestion / Microbiote
+  { name: "Probiotiques", tags: ["digestion", "microbiote", "immunite"], label: "Microbiote" },
+  { name: "Prébiotiques", tags: ["digestion", "microbiote"], label: "Fibres" },
+
+  // ✅ Antioxydants
+  { name: "Vitamine E", tags: ["antioxydant"], label: "Vitamine" },
+
+  // 🚫 Faux / défavorables (toujours taggés junk)
+  { name: "Fast-food", tags: ["junk"], label: "🛑" },
+  { name: "Sucre raffiné", tags: ["junk"], label: "🛑" },
+  { name: "Sédentarité", tags: ["junk"], label: "🛑" },
+  { name: "Tabac", tags: ["junk"], label: "🛑" },
 ];
 
-// 2) Config minimale des objectifs
+// 2) Config objectifs
 type ObjectiveConfig = {
   id: string;
   title: string;
@@ -31,54 +46,57 @@ type ObjectiveConfig = {
 
 const OBJECTIVE_CONFIGS: ObjectiveConfig[] = [
   {
-    id: 'immunite',
+    id: "immunite",
     title: "Objectif : soutenir l'immunité",
     description:
-      "Cliquez sur les micronutriments qui renforcent le système immunitaire (surtout en période d’infections saisonnières). Évitez les faux amis : Fast-food, sucre raffiné, tabac…",
-    mainTag: 'immunite'
+      "Cliquez sur les micronutriments qui renforcent le système immunitaire. Évitez les faux amis (fast-food, sucre, tabac…).",
+    mainTag: "immunite",
   },
   {
-    id: 'stress',
-    title: 'Objectif : gérer le stress & le sommeil',
+    id: "stress",
+    title: "Objectif : gérer le stress & le sommeil",
     description:
-      'Cliquez sur les micronutriments utiles pour la relaxation, la gestion du stress et un sommeil de qualité. Attention aux habitudes qui les perturbent (café tardif, tabac, sédentarité…).',
-    mainTag: 'stress'
+      "Cliquez sur les micronutriments utiles pour la relaxation et un sommeil de qualité.",
+    mainTag: "stress",
   },
   {
-    id: 'fatigue',
-    title: 'Objectif : lutter contre la fatigue',
+    id: "fatigue",
+    title: "Objectif : lutter contre la fatigue",
     description:
-      'Cliquez sur les micronutriments qui aident à réduire la fatigue physique et mentale. Ne vous laissez pas piéger par les faux boosters comme le Fast-food ou le sucre raffiné.',
-    mainTag: 'fatigue'
+      "Cliquez sur les micronutriments qui aident à réduire la fatigue physique et mentale.",
+    mainTag: "fatigue",
   },
   {
-    id: 'digestion',
-    title: 'Objectif : confort digestif',
+    id: "digestion",
+    title: "Objectif : confort digestif",
     description:
-      'Cliquez sur les micronutriments utiles au microbiote, au confort digestif et à un transit harmonieux.',
-    mainTag: 'digestion'
+      "Cliquez sur les micronutriments utiles au microbiote, au confort digestif et à un transit harmonieux.",
+    mainTag: "digestion",
   },
   {
-    id: 'antioxydants',
-    title: 'Objectif : protection cellulaire & antioxydants',
+    id: "antioxydant",
+    title: "Objectif : protection cellulaire & antioxydants",
     description:
-      'Cliquez sur les micronutriments qui protègent les cellules du stress oxydatif (peau, yeux, cœur, cerveau…).',
-    mainTag: 'antioxydant'
-  }
+      "Cliquez sur les micronutriments qui protègent les cellules du stress oxydatif.",
+    mainTag: "antioxydant",
+  },
 ];
 
-// 3) OBJECTIVES : générés automatiquement à partir des tags
-export const OBJECTIVES: Objective[] = OBJECTIVE_CONFIGS.map(cfg => {
-  const relatedItems = ITEMS.filter(item => item.tags.includes(cfg.mainTag));
+// 3) Génération des objectifs + sécurité si un objectif n’a pas assez de cibles
+export const OBJECTIVES: Objective[] = OBJECTIVE_CONFIGS.map((cfg) => {
+  const relatedItems = ITEMS.filter((item) => item.tags.includes(cfg.mainTag));
+  const targets = relatedItems.map((item) => item.name);
 
   return {
     id: cfg.id,
     title: cfg.title,
     description: cfg.description,
-    targets: relatedItems.map(item => item.name),
-    tags: [cfg.mainTag]
+    targets,
+    tags: [cfg.mainTag],
   };
 });
 
 export const TOTAL_TIME = 30;
-export const SPAWN_INTERVAL = 1600;
+
+// ✅ plus fluide (plus de chances d’avoir des bulles avant la fin)
+export const SPAWN_INTERVAL = 1400;

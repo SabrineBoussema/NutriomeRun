@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Bubble } from './Bubble';
 import { Objective, Item } from '../types';
 import { ITEMS, SPAWN_INTERVAL } from '../constants';
@@ -20,97 +20,165 @@ interface BubbleState {
   lane: number;
 }
 
-const LANES = 3; // 3 colonnes max
+const LANES = 3;
+const BUBBLE_WIDTH = 140;
 
-export function GameScreen({
-  objective,
-  timeLeft,
-  score,
-  onScoreChange,
-  onTimeEnd
-}: GameScreenProps) {
+const norm = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+export function GameScreen({ objective, timeLeft, score, onScoreChange, onTimeEnd }: GameScreenProps) {
   const [bubbles, setBubbles] = useState<BubbleState[]>([]);
   const [feedback, setFeedback] = useState<{ message: string; type: 'good' | 'bad' | '' }>({
     message: '',
     type: ''
   });
+
   const bubbleIdRef = useRef(0);
   const playAreaRef = useRef<HTMLDivElement>(null);
+  const spawnRef = useRef<number | null>(null);
+  const endedRef = useRef(false);
+  const feedbackTimeoutRef = useRef<number | null>(null);
 
+  // ✅ Set des bonnes réponses (robuste)
+  const goodSet = useMemo(() => {
+    return new Set((objective.targets ?? []).map(norm));
+  }, [objective.id, objective.targets]);
+
+  const clearSpawn = useCallback(() => {
+    if (spawnRef.current !== null) {
+      window.clearInterval(spawnRef.current);
+      spawnRef.current = null;
+    }
+  }, []);
+
+  const clearFeedbackTimeout = useCallback(() => {
+    if (feedbackTimeoutRef.current !== null) {
+      window.clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+  }, []);
+
+  const showFeedback = useCallback((message: string, type: 'good' | 'bad') => {
+    setFeedback({ message, type });
+    clearFeedbackTimeout();
+    feedbackTimeoutRef.current = window.setTimeout(() => {
+      setFeedback({ message: '', type: '' });
+    }, 900);
+  }, [clearFeedbackTimeout]);
+
+  const computeLeftForLane = useCallback((lane: number) => {
+    const areaWidth = playAreaRef.current?.clientWidth || 480;
+    if (LANES <= 1) return 10;
+
+    const laneWidth = (areaWidth - BUBBLE_WIDTH) / (LANES - 1);
+    return 10 + lane * laneWidth;
+  }, []);
+
+  // ✅ Spawn robuste : si toutes les lanes sont occupées, on remplace la plus ancienne lane
   const spawnBubble = useCallback(() => {
-    setBubbles(prev => {
+    if (endedRef.current) return;
+
+    setBubbles((prev) => {
       const current = prev ?? [];
 
       // lanes occupées
-      const occupiedLanes = new Set(current.map(b => b.lane));
+      const occupiedLanes = new Set(current.map((b) => b.lane));
 
-      // lane libre
-      let freeLane: number | null = null;
+      // lane libre ?
+      let laneToUse: number | null = null;
       for (let i = 0; i < LANES; i++) {
         if (!occupiedLanes.has(i)) {
-          freeLane = i;
+          laneToUse = i;
           break;
         }
       }
 
-      // pas de lane dispo → on attend le prochain tick
-      if (freeLane === null) {
-        return current;
+      // si aucune libre : on recycle la lane de la plus ancienne bulle
+      let next = current;
+      if (laneToUse === null && current.length > 0) {
+        const oldest = current[0];
+        laneToUse = oldest.lane;
+        next = current.slice(1); // retire la plus ancienne pour libérer la lane
       }
 
-      const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-      const isGood = item.tags.some(tag => objective.tags.includes(tag));
+      // sécurité si vide total et aucune lane (cas extrême)
+      if (laneToUse === null) laneToUse = 0;
 
-      const areaWidth = playAreaRef.current?.clientWidth || 480;
-      const bubbleWidth = 140;
+      // Choix item : mix bon/mauvais pour éviter trop de "bons" ou trop de "mauvais"
+      const goodItems = ITEMS.filter((it) => goodSet.has(norm(it.name)));
+      const badItems = ITEMS.filter((it) => !goodSet.has(norm(it.name)));
 
-      const laneWidth = LANES > 1 ? (areaWidth - bubbleWidth) / (LANES - 1) : 0;
-      const left = 10 + freeLane * laneWidth;
+      const takeGood = goodItems.length > 0 && Math.random() < 0.6;
+      const pool = takeGood ? goodItems : badItems.length > 0 ? badItems : ITEMS;
+      const item = pool[Math.floor(Math.random() * pool.length)];
+
+      const isGood = goodSet.has(norm(item.name));
 
       const newBubble: BubbleState = {
         id: bubbleIdRef.current++,
         item,
         isGood,
-        left,
-        lane: freeLane
+        left: computeLeftForLane(laneToUse),
+        lane: laneToUse
       };
 
-      return [...current, newBubble];
+      // max 10 bulles (propreté)
+      return [...next, newBubble].slice(-10);
     });
-  }, [objective.tags]);
+  }, [goodSet, computeLeftForLane]);
 
+  // ✅ reset quand objectif change : clear + spawn immédiat + interval stable
   useEffect(() => {
-    const interval = setInterval(spawnBubble, SPAWN_INTERVAL);
-    return () => clearInterval(interval);
-  }, [spawnBubble]);
+    endedRef.current = false;
+    clearSpawn();
+    clearFeedbackTimeout();
+    setFeedback({ message: '', type: '' });
+    setBubbles([]);
 
+    // spawn direct pour éviter écran vide
+    spawnBubble();
+    window.setTimeout(() => spawnBubble(), 250);
+
+    spawnRef.current = window.setInterval(spawnBubble, SPAWN_INTERVAL);
+
+    return () => {
+      clearSpawn();
+      clearFeedbackTimeout();
+    };
+  }, [objective.id, SPAWN_INTERVAL, spawnBubble, clearSpawn, clearFeedbackTimeout]);
+
+  // ✅ fin de partie
   useEffect(() => {
-    if (timeLeft <= 0) {
-      onTimeEnd();
-    }
-  }, [timeLeft, onTimeEnd]);
+    if (timeLeft > 0) return;
+    if (endedRef.current) return;
+
+    endedRef.current = true;
+    clearSpawn();
+    onTimeEnd();
+  }, [timeLeft, clearSpawn, onTimeEnd]);
 
   const handleBubbleClick = useCallback(
     (isGood: boolean) => {
+      if (endedRef.current) return;
+
       if (isGood) {
         onScoreChange(score + 1);
-        setFeedback({
-          message: '✅ Bien joué ! Micronutriment adapté à l’objectif.',
-          type: 'good'
-        });
+        showFeedback('✅ Bien joué ! Micronutriment adapté à l’objectif.', 'good');
       } else {
         onScoreChange(Math.max(0, score - 1));
-        setFeedback({
-          message: '❌ Oups, celui-ci ne cible pas vraiment cet objectif.',
-          type: 'bad'
-        });
+        showFeedback('❌ Oups, celui-ci ne cible pas vraiment cet objectif.', 'bad');
       }
     },
-    [score, onScoreChange]
+    [score, onScoreChange, showFeedback]
   );
 
   const handleBubbleAnimationEnd = useCallback((id: number) => {
-    setBubbles(prev => prev.filter(b => b.id !== id));
+    setBubbles((prev) => prev.filter((b) => b.id !== id));
   }, []);
 
   return (
@@ -136,8 +204,9 @@ export function GameScreen({
         <div className="mb-1 text-sm font-semibold text-[#10343a]">{objective.title}</div>
         <div className="mb-2.5 text-xs text-gray-500">{objective.description}</div>
 
+        {/* Chips : seulement informatives (non cliquables) */}
         <div className="mb-2 flex flex-wrap gap-1.5">
-          {objective.targets.map(target => (
+          {objective.targets.map((target) => (
             <span
               key={target}
               className="rounded-full border border-[rgba(28,156,108,0.25)] bg-[#e5f6ef] px-2.5 py-1 text-[11px] text-[#10343a]"
@@ -156,7 +225,7 @@ export function GameScreen({
           ref={playAreaRef}
           className="relative h-[260px] w-full overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-b from-white to-[#eef3f6]"
         >
-          {bubbles.map(bubble => (
+          {bubbles.map((bubble) => (
             <Bubble
               key={bubble.id}
               item={bubble.item}
